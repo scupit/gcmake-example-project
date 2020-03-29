@@ -1,14 +1,41 @@
 {
     "defaultCppStandard": "11",
 
-    "output": {
-        "_cpp_base_executable_": {
+    "outputGroups": {
+        "exes": {
             "type": "executable",
-            "mainFile": "main.cpp",
-            "rSourceDirs": [ "src" ],
-            "rHeaderDirs": [ "include" ],
+            "outputs": {
+                "main": {
+                    "mainFile": "main.cpp"
+                },
+                "not_linked": {
+                    "mainFile": "not_linked_main.cpp"
+                }
+            }
+        },
+        "grouped_libs": {
+            "type": "staticLib",
+            "outputs": {
+                "math_lib": {
+                    "rHeaderDirs": [ "include/math" ],
+                    "rSourceDirs": [ "src/math" ]
+                },
+                "printing": {
+                    "rHeaderDirs": [ "include/printing"],
+                    "rSourceDirs": [ "src/printing" ]
+                }
+            },
             "includeDirs": [ "include" ]
         }
+    },
+
+    "links": {
+        "exes.main": [
+            "grouped_libs"
+        ],
+        "exes.not_linked": [
+            "grouped_libs.printing"
+        ]
     },
 
     "buildTargets": {

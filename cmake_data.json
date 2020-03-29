@@ -1,6 +1,4 @@
 {
-    "defaultCppStandard": "11",
-
     "output": {
         "matrix-main-2": {
             "type": "executable",

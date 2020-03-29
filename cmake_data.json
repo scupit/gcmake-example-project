@@ -1,6 +1,19 @@
 {
     "defaultCppStandard": "11",
 
+    "output": {
+        "matrix-main-2": {
+            "type": "executable",
+            "mainFile": "matrix_main_2.cpp"
+        },
+        "quick-header": {
+            "type": "sharedLib",
+            "includeDirs": [ "include" ],
+            "headers": [ "include/QuickHeader.hpp" ],
+            "sources": [ "src/QuickHeader.cpp" ]
+        }
+    },
+
     "outputGroups": {
         "exes": {
             "type": "executable",
@@ -8,8 +21,8 @@
                 "main": {
                     "mainFile": "main.cpp"
                 },
-                "not_linked": {
-                    "mainFile": "not_linked_main.cpp"
+                "matrix-main": {
+                    "mainFile": "matrix_main.cpp"
                 }
             }
         },
@@ -29,12 +42,28 @@
         }
     },
 
+    "importedLibs": {
+        "matrices": {
+            "gitRepo": "https://github.com/scupit/basic-matrices.git",
+            "cloneRepo": true,
+            "includeDirs": [ "dep/include" ],
+            "rHeaderDirs": [ "dep/include" ],
+            "rootDir": "dep/lib/matrices",
+            "libFiles": [ "matrices" ]
+        }
+    },
+
     "links": {
-        "exes.main": [
-            "grouped_libs"
+        "exes": [
+            "grouped_libs",
+            "quick-header"
         ],
-        "exes.not_linked": [
-            "grouped_libs.printing"
+        "grouped_libs.math_lib": [
+            "matrices"
+        ],
+        "matrix-main-2": [
+            "grouped_libs.math_lib",
+            "quick-header"
         ]
     },
 

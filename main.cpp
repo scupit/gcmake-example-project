@@ -6,6 +6,8 @@
 #include "printing/Hello.hpp"
 #include "printing/Moo.hpp"
 
+#include "QuickHeader.hpp"
+
 using namespace std;
 
 int main() {
@@ -18,6 +20,8 @@ int main() {
   cout << std::endl;
   Hello::printHello();
   Moo::printMoo();
+
+  printQuick();
 
   return 0;
 }

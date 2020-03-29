@@ -46,12 +46,49 @@ message( "Using compiler flags: ${CMAKE_CXX_FLAGS}" )
 message( "Building project '${CMAKE_BUILD_TYPE}' configuration" )
 
 # ////////////////////////////////////////////////////////////////////////////////
-# IMPORTED LIBRARIES (none)
+# IMPORTED LIBRARIES 
 # ////////////////////////////////////////////////////////////////////////////////
 
+# Imported lib: matrices
+set( matrices_INCLUDE_DIRS
+	${PROJECT_SOURCE_DIR}/dep/include
+)
+
+set( matrices_HEADERS
+	${PROJECT_SOURCE_DIR}/dep/include/matrices/Matrix.hpp
+)
+
+find_library( matrices_0
+	NAMES matrices
+	PATHS ${PROJECT_SOURCE_DIR}/dep/lib/matrices
+)
+
 # ////////////////////////////////////////////////////////////////////////////////
-# OUTPUT SHARED LIBRARIES (none)
+# OUTPUT SHARED LIBRARIES 
 # ////////////////////////////////////////////////////////////////////////////////
+
+# Output shared library: quick-header 
+set( quick-header_HEADERS
+	${PROJECT_SOURCE_DIR}/include/QuickHeader.hpp
+)
+
+set( quick-header_SOURCES
+	${quick-header_HEADERS}
+	${PROJECT_SOURCE_DIR}/src/QuickHeader.cpp
+)
+
+set( quick-header_INCLUDE_DIRS
+	${PROJECT_SOURCE_DIR}/include
+)
+
+add_library( quick-header SHARED ${quick-header_SOURCES} )
+target_include_directories( quick-header PRIVATE ${quick-header_INCLUDE_DIRS} )
+
+set_target_properties( quick-header PROPERTIES
+	ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}
+	LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}
+)
 
 # ////////////////////////////////////////////////////////////////////////////////
 # OUTPUT STATIC LIBRARIES (none)
@@ -75,6 +112,7 @@ set( g_grouped_libs_INCLUDE_DIRS
 # Output static library: math_lib
 set( math_lib_HEADERS
 	${g_grouped_libs_HEADERS}
+	${matrices_HEADERS}
 	${PROJECT_SOURCE_DIR}/include/math/Doubler.hpp
 	${PROJECT_SOURCE_DIR}/include/math/Halver.hpp
 )
@@ -88,6 +126,7 @@ set( math_lib_SOURCES
 
 set( math_lib_INCLUDE_DIRS
 	${g_grouped_libs_INCLUDE_DIRS}
+	${matrices_INCLUDE_DIRS}
 )
 
 add_library( math_lib STATIC ${math_lib_SOURCES} )
@@ -130,19 +169,24 @@ set_target_properties( printing PROPERTIES
 
 # Output Group g_exes
 set( g_exes_HEADERS
+	${quick-header_HEADERS}
+	${math_lib_HEADERS}
+	${printing_HEADERS}
 )
 
 set( g_exes_SOURCES
+	${g_exes_HEADERS}
 )
 
 set( g_exes_INCLUDE_DIRS
+	${quick-header_INCLUDE_DIRS}
+	${math_lib_INCLUDE_DIRS}
+	${printing_INCLUDE_DIRS}
 )
 
 # Output executable: main
 set( main_HEADERS
 	${g_exes_HEADERS}
-	${math_lib_HEADERS}
-	${printing_HEADERS}
 )
 
 set( main_SOURCES
@@ -153,8 +197,6 @@ set( main_SOURCES
 
 set( main_INCLUDE_DIRS
 	${g_exes_INCLUDE_DIRS}
-	${math_lib_INCLUDE_DIRS}
-	${printing_INCLUDE_DIRS}
 )
 
 add_executable( main ${main_SOURCES} )
@@ -164,44 +206,94 @@ set_target_properties( main PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}
 )
 
-# Output executable: not_linked
-set( not_linked_HEADERS
+# Output executable: matrix-main
+set( matrix-main_HEADERS
 	${g_exes_HEADERS}
-	${printing_HEADERS}
 )
 
-set( not_linked_SOURCES
-	${not_linked_HEADERS}
+set( matrix-main_SOURCES
+	${matrix-main_HEADERS}
 	${g_exes_SOURCES}
-	${PROJECT_SOURCE_DIR}/not_linked_main.cpp
+	${PROJECT_SOURCE_DIR}/matrix_main.cpp
 )
 
-set( not_linked_INCLUDE_DIRS
+set( matrix-main_INCLUDE_DIRS
 	${g_exes_INCLUDE_DIRS}
-	${printing_INCLUDE_DIRS}
 )
 
-add_executable( not_linked ${not_linked_SOURCES} )
-target_include_directories( not_linked PRIVATE ${not_linked_INCLUDE_DIRS} )
+add_executable( matrix-main ${matrix-main_SOURCES} )
+target_include_directories( matrix-main PRIVATE ${matrix-main_INCLUDE_DIRS} )
 
-set_target_properties( not_linked PROPERTIES
+set_target_properties( matrix-main PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}
 )
 
 # ////////////////////////////////////////////////////////////////////////////////
-# OUTPUT EXECUTABLES (none)
+# OUTPUT EXECUTABLES 
 # ////////////////////////////////////////////////////////////////////////////////
+
+# Output executable: matrix-main-2
+set( matrix-main-2_HEADERS
+	${math_lib_HEADERS}
+	${quick-header_HEADERS}
+)
+
+set( matrix-main-2_SOURCES
+	${matrix-main-2_HEADERS}
+	${PROJECT_SOURCE_DIR}/matrix_main_2.cpp
+)
+
+set( matrix-main-2_INCLUDE_DIRS
+	${math_lib_INCLUDE_DIRS}
+	${quick-header_INCLUDE_DIRS}
+)
+
+add_executable( matrix-main-2 ${matrix-main-2_SOURCES} )
+target_include_directories( matrix-main-2 PRIVATE ${matrix-main-2_INCLUDE_DIRS} )
+
+set_target_properties( matrix-main-2 PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}
+)
 
 # ////////////////////////////////////////////////////////////////////////////////
 # LINK LIBRARIES TO OUTPUTS
 # ////////////////////////////////////////////////////////////////////////////////
 
 target_link_libraries( main
-	printing 
 	math_lib 
-)
-
-target_link_libraries( not_linked
+	quick-header 
 	printing 
 )
 
+target_link_libraries( matrix-main
+	math_lib 
+	quick-header 
+	printing 
+)
+
+target_link_libraries( math_lib
+	${matrices_0}
+)
+
+target_link_libraries( matrix-main-2
+	math_lib 
+	quick-header 
+)
+
+# ////////////////////////////////////////////////////////////////////////////////
+# IMPORTED LIBRARY COPY COMMANDS
+# ////////////////////////////////////////////////////////////////////////////////
+
+# Copy libaries imported by matrices to executable output dir
+add_custom_command(TARGET main POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${PROJECT_SOURCE_DIR}/dep/lib/matrices
+		${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}
+)
+
+# Copy libaries imported by matrices to executable output dir
+add_custom_command(TARGET matrix-main POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${PROJECT_SOURCE_DIR}/dep/lib/matrices
+		${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}
+)

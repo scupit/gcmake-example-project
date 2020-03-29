@@ -1,6 +1,8 @@
 #ifndef DOUBLER_HPP
 #define DOUBLER_HPP
 
+#include "matrices/Matrix.hpp"
+
 class Doubler {
 	private:
 		int num;
@@ -10,6 +12,7 @@ class Doubler {
 		~Doubler();
 
 		int doubled();
+		Matrix<int> asMatrix(const size_t, const size_t);
 };
 
 #endif
